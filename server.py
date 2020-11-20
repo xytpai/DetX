@@ -26,9 +26,10 @@ def allowed_file(filename):
 @app.route('/', methods=['POST', 'GET'])
 def hello_world():
     if request.method == 'POST':
+        upload_default = os.path.join('static/images', 'upload.jpg')
         f = request.files['file']
         if not (f and allowed_file(f.filename)):
-            return render_template('detx2d.html', upload_path='upload.jpg')
+            return render_template('detx2d.html', upload_path=upload_default)
         user_input = request.form.get("name")
         basepath = os.path.dirname(__file__)
 
@@ -52,7 +53,7 @@ def hello_world():
 
         return render_template('detx2d.html', upload_path=pred_rel_path)
     else:
-        return render_template('detx2d.html', upload_path='upload.jpg')
+        return render_template('detx2d.html', upload_path=upload_default)
 
 
 if __name__ == '__main__':
