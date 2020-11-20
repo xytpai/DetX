@@ -15,12 +15,12 @@ class Detector(nn.Module):
         self.register_buffer('trained_log', torch.zeros(2).long())
         self.num_class    = self.cfg['DETECTOR']['NUM_CLASS']
         self.win_minmax   = self.cfg['DETECTOR']['WIN_MINMAX']
+        self.numdets      = self.cfg['DETECTOR']['NUMDETS']
         self.backbone     = ResNet(self.cfg['DETECTOR']['DEPTH'])
         self.neck         = BiFPN4(self.backbone.out_channels, 256)
         self.bbox_head    = BBOXHead(256, self.num_class)
         self.focal_loss   = SigmoidFocalLoss(2.0, 0.25)
         self.iou_loss     = IOULoss()
-        self.numdets      = 100
         if self.mode == 'TRAIN' and self.cfg['TRAIN']['BACKBONE_PRETRAINED']:
             self.backbone.load_pretrained_params()
         
@@ -31,7 +31,7 @@ class Detector(nn.Module):
         label_cls:  L(b, n)       0:pad
         label_reg:  F(b, n, 4)    yxyx
         '''
-        batch_size, channels, im_h, im_w = imgs.shape
+        batch_size, _, im_h, im_w = imgs.shape
         out_ft = self.neck(self.backbone(imgs))
         pred_cls, pred_reg, pred_info = [], [], []
         for ft in out_ft:
@@ -39,7 +39,7 @@ class Detector(nn.Module):
             cls_s, reg_s = self.bbox_head(ft, im_h, im_w)
             pred_cls.append(cls_s)
             pred_reg.append(reg_s)
-            pred_info.append([ft_h, ft_w, (im_w-1)//(ft_w-1)])
+            pred_info.append([ft_h, ft_w, (im_h-1)//(ft_h-1)])
         if label_cls is not None and label_reg is not None:
             return self._loss(locations, im_h, im_w, pred_cls, pred_reg, pred_info, \
                                 label_cls, label_reg)
@@ -78,11 +78,6 @@ class Detector(nn.Module):
         return torch.cat(loss)
 
     def _pred(self, locations, im_h, im_w, pred_cls, pred_reg, pred_info):
-        '''
-        pred_cls_i: L(n)
-        pred_cls_p: F(n)
-        pred_reg:   F(n, 4)
-        '''
         assert self.mode != 'TRAIN'
         batch_size = pred_cls[0].shape[0]
         assert batch_size == 1
@@ -101,22 +96,22 @@ class Detector(nn.Module):
             _pred_reg.append(pred_reg_s[select])
         pred_cls_i, pred_cls_p, pred_reg = torch_cat(
             [_pred_cls_i, _pred_cls_p, _pred_reg], dim=0)
-        # clamp
-        if locations.shape[0]==1: locations = locations[0]
-        valid_ymin, valid_xmin, valid_ymax, valid_xmax, ori_h, ori_w = \
-            float(locations[0]), float(locations[1]), float(locations[2]), \
-            float(locations[3]), float(locations[4]), float(locations[5])
-        pred_reg[..., :0].clamp_(min=valid_ymin)
-        pred_reg[..., :1].clamp_(min=valid_xmin)
-        pred_reg[..., :2].clamp_(max=valid_ymax)
-        pred_reg[..., :3].clamp_(max=valid_xmax)
         # throw none
-        if pred_reg.shape[0] == 0:
+        if pred_cls_i.shape[0] == 0:
             return {
                 'bbox': torch.empty(0, 4).float(),
                 'class': torch.empty(0).long(),
                 'score': torch.empty(0).float()
             }
+        # clamp
+        if locations.shape[0]==1: locations = locations[0]
+        valid_ymin, valid_xmin, valid_ymax, valid_xmax, ori_h, ori_w = \
+            float(locations[0]), float(locations[1]), float(locations[2]), \
+            float(locations[3]), float(locations[4]), float(locations[5])
+        pred_reg[..., 0].clamp_(min=valid_ymin)
+        pred_reg[..., 1].clamp_(min=valid_xmin)
+        pred_reg[..., 2].clamp_(max=valid_ymax)
+        pred_reg[..., 3].clamp_(max=valid_xmax)
         # nms for each class
         pred_cls_i, pred_cls_p, pred_reg, _ = cluster_nms(
             pred_cls_i, pred_cls_p, pred_reg, self.cfg[self.mode]['NMS_IOU'])
