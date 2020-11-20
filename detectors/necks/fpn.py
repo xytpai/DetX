@@ -26,15 +26,18 @@ class BiFPN4(nn.Module):
         p5 = self.proj5(c5)
         p4 = self.proj4(c4)
         p3 = self.proj3(c3)
+
         p4 = p4 + bilinear_interpolate(p5, (p4.shape[2], p4.shape[3]))
         p3 = p3 + bilinear_interpolate(p4, (p3.shape[2], p3.shape[3]))
+
         p3 = self.conv3(p3)
         p4 = self.conv4(p4)
         p5 = self.conv5(p5)
         p6 = self.conv6(p5)
-        phws = [(p.shape[2], p.shape[3]) for p in [p3, p4, p5, p6]]
+
         n3 = p3
         n4 = p4 + bilinear_interpolate(self.puri3(n3), (p4.shape[2], p4.shape[3]))
         n5 = p5 + bilinear_interpolate(self.puri4(n4), (p5.shape[2], p5.shape[3]))
         n6 = p6 + bilinear_interpolate(self.puri5(n5), (p6.shape[2], p6.shape[3]))
+
         return n3, n4, n5, n6

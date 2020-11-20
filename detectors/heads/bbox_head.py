@@ -49,7 +49,7 @@ class BBOXHead(nn.Module):
         reg_s: F(b, h_s*w_s, 4) ymin, xmin, ymax, xmax
         '''
         batch_size, c, h_s, w_s = x.shape
-        stride = (im_h-1) // (h_s-1)
+        stride = (im_w-1) // (w_s-1)
         cls_s = self.conv_cls(x)
         reg_s = self.conv_reg(x)
         cls_s = cls_s.permute(0,2,3,1).contiguous()
@@ -63,6 +63,7 @@ class BBOXHead(nn.Module):
         center_y = center_y.contiguous()
         center_x = center_x.contiguous()
         center_yx = torch.cat([center_y.view(-1, 1), center_x.view(-1, 1)], dim=1)
+        center_yx = center_yx.unsqueeze(0)
         reg_s_ymin_xmin =  center_yx + reg_s[..., 0:2]
         reg_s_ymax_xmax =  center_yx + reg_s[..., 2:4]
         reg_s = torch.cat([reg_s_ymin_xmin, reg_s_ymax_xmax], dim=2)
