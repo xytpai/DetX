@@ -25,8 +25,8 @@ def allowed_file(filename):
 # app
 @app.route('/', methods=['POST', 'GET'])
 def hello_world():
+    upload_default = os.path.join('static/images', 'upload.jpg')
     if request.method == 'POST':
-        upload_default = os.path.join('static/images', 'upload.jpg')
         f = request.files['file']
         if not (f and allowed_file(f.filename)):
             return render_template('detx2d.html', upload_path=upload_default)
