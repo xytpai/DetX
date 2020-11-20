@@ -49,7 +49,7 @@ class BBOXHead(nn.Module):
         reg_s: F(b, h_s*w_s, 4) ymin, xmin, ymax, xmax
         '''
         batch_size, c, h_s, w_s = x.shape
-        stride = (im_w-1) // (w_s-1)
+        stride = (im_h-1) // (h_s-1)
         cls_s = self.conv_cls(x)
         reg_s = self.conv_reg(x)
         cls_s = cls_s.permute(0,2,3,1).contiguous()
