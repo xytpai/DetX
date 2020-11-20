@@ -11,7 +11,7 @@ from pycocotools.mask import encode
 ### cfg ###
 getting_results = True
 num_datas = -500
-eval_type = 'segm' # bbox or segm
+eval_type = 'bbox' # bbox or segm
 ########### 
 
 parser = argparse.ArgumentParser(description='Pytorch Object Detection Train')
@@ -48,8 +48,8 @@ if getting_results:
         img_name = dataset.coco.loadImgs(dataset.ids[idx])[0]['file_name']
         img = Image.open(os.path.join(dataset.root_img, img_name))
         pred = inferencer.pred(img)
-        if pred['box'].shape[0] > 0:
-            ymin, xmin, ymax, xmax = pred['box'].split([1, 1, 1, 1], dim=1)
+        if pred['bbox'].shape[0] > 0:
+            ymin, xmin, ymax, xmax = pred['bbox'].split([1, 1, 1, 1], dim=1)
             h, w = ymax - ymin + 1, xmax - xmin + 1
             pred_box = torch.cat([xmin, ymin, w, h], dim=1)
             if dataset.task == 'segm':

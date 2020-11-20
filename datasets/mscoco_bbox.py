@@ -62,6 +62,7 @@ class Dataset(torchvision.datasets.coco.CocoDetection):
 
     def __init__(self, cfg, mode='TEST'):
         # base
+        self.task = 'bbox'
         self.loss_def = "self.detector(data['imgs'], data['locations'], data['labels'], data['boxes']).mean()"
         self.cfg = cfg
         self.mode = mode

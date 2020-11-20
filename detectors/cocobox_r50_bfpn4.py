@@ -110,6 +110,13 @@ class Detector(nn.Module):
         pred_reg[..., :1].clamp_(min=valid_xmin)
         pred_reg[..., :2].clamp_(max=valid_ymax)
         pred_reg[..., :3].clamp_(max=valid_xmax)
+        # throw none
+        if pred_reg.shape[0] == 0:
+            return {
+                'bbox': torch.empty(0, 4).float(),
+                'class': torch.empty(0).long(),
+                'score': torch.empty(0).float()
+            }
         # nms for each class
         pred_cls_i, pred_cls_p, pred_reg, _ = cluster_nms(
             pred_cls_i, pred_cls_p, pred_reg, self.cfg[self.mode]['NMS_IOU'])
@@ -121,12 +128,11 @@ class Detector(nn.Module):
         # transfer
         pred_reg = transfer_box_(pred_reg, valid_ymin, valid_xmin, 
             valid_ymax, valid_xmax, ori_h, ori_w)
-        pred = {
+        return {
             'bbox': pred_reg.cpu(),
             'class': pred_cls_i.cpu(),
             'score': pred_cls_p.cpu()
         }
-        return pred
     
     def load_pretrained_params(self, path='weights/cocobox_r50_bfpn4'):
         self.load_state_dict(path, map_location='cpu')
