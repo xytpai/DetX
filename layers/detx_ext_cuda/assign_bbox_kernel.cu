@@ -33,12 +33,12 @@ __global__ void assign_box_kernel(const int nthreads,
 			float cx = (xmin + xmax) / 2.0;
 			float ch = ymax - ymin + 1;
 			float cw = xmax - xmin + 1;
+			float area = ch * cw;
 			float top = center_y - ymin;
 			float bottom = ymax - center_y;
 			float left = center_x - xmin;
 			float right = xmax - center_x;
 			float max_tlbr = max(top, max(left, max(bottom, right)));
-			float area = ch * cw;
 			float oy = fabs(cy - center_y);
 			float ox = fabs(cx - center_x);
 			if (max_tlbr>=size_min_2 && max_tlbr<=size_max_2 

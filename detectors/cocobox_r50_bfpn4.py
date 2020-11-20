@@ -84,7 +84,7 @@ class Detector(nn.Module):
         _pred_cls_i, _pred_cls_p, _pred_reg = [], [], []
         for s in range(len(pred_info)):
             ft_h, ft_w, ft_stride = pred_info[s]
-            pred_cls_p_s, pred_cls_i_s = torch.max(pred_cls[s][0], dim=1)
+            pred_cls_p_s, pred_cls_i_s = torch.max(pred_cls[s][0].sigmoid(), dim=1)
             pred_cls_i_s = pred_cls_i_s + 1
             m = pred_cls_p_s > self.cfg[self.mode]['NMS_TH']
             pred_cls_i_s, pred_cls_p_s, pred_reg_s = torch_select(
