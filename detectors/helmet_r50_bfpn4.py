@@ -31,6 +31,7 @@ class Detector(nn.Module):
         _bias = -math.log((1.0-pi)/pi)
         nn.init.constant_(self.base_detector.bbox_head.conv_cls[-1].bias, _bias)
         self.backbone = self.base_detector.backbone
+        self.base_detector.bbox_head.num_class = self.base_detector.num_class
         
     def forward(self, imgs, locations, label_cls=None, label_reg=None):
         return self.base_detector(imgs, locations, label_cls, label_reg)
