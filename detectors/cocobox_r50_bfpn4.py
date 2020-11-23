@@ -129,5 +129,5 @@ class Detector(nn.Module):
             'score': pred_cls_p.cpu()
         }
     
-    def load_pretrained_params(self, path='weights/cocobox_r50_bfpn4'):
-        self.load_state_dict(path, map_location='cpu')
+    def load_pretrained_params(self, path):
+        self.load_state_dict(torch.load(path, map_location='cpu'))

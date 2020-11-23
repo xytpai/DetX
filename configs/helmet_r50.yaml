@@ -1,14 +1,14 @@
 DATASET:
-  NAME: "mscoco_bbox"
+  NAME: "helmet_bbox"
   ROOT_TRAIN: "/home1/xyt/dataset/helmet/images"
   ROOT_EVAL: "/home1/xyt/dataset/helmet/images"
   ROOT_TEST: "demo_images"
-  JSON_TRAIN: "/home1/xyt/dataset/helmet/annotations/train.json"
-  JSON_EVAL: "/home1/xyt/dataset/helmet/annotations/val.json"
+  JSON_TRAIN: "/home1/xyt/dataset/helmet/annotations/helmet_train.json"
+  JSON_EVAL: "/home1/xyt/dataset/helmet/annotations/helmet_val.json"
   JSON_TEST: "demo_images/instances_demo.json"
 
 DETECTOR:
-  NAME: "helmet_r50_fpn4"
+  NAME: "helmet_r50_bfpn4"
   ROOT_WEIGHT: "weights"
   DEPTH: 50
   NUM_CLASS: 5

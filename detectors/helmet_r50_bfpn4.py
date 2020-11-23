@@ -5,8 +5,9 @@ from layers import *
 from detectors.backbones import *
 from detectors.necks import *
 from detectors.heads import *
-import detectors.cocobox_r50_bfpn4.Detector as BaseDetector
+import detectors.cocobox_r50_bfpn4 as BaseDetector
 import math
+from api import load_cfg
 
 
 class Detector(nn.Module):
@@ -15,15 +16,16 @@ class Detector(nn.Module):
         self.cfg = cfg
         self.mode = mode
         self.register_buffer('trained_log', torch.zeros(2).long())
-        self.base_detector = BaseDetector(cfg='configs/cocobox_r50_base.yaml', mode=mode)
+        self.base_detector = BaseDetector.Detector(
+            cfg=load_cfg('configs/cocobox_r50_base.yaml'), mode=mode)
         if self.mode == 'TRAIN' and self.cfg['TRAIN']['BACKBONE_PRETRAINED']:
-            self.backbone.load_pretrained_params(path='weights/cocobox_r50_bfpn4')
+            self.base_detector.load_pretrained_params(path='weights/cocobox_r50_base.pkl')
         self.base_detector.num_class    = self.cfg['DETECTOR']['NUM_CLASS']
         self.base_detector.win_minmax   = self.cfg['DETECTOR']['WIN_MINMAX']
         self.base_detector.numdets      = self.cfg['DETECTOR']['NUMDETS']
         self.base_detector.cfg          = self.cfg
         self.base_detector.bbox_head.conv_cls[-1] = \
-            nn.Conv2d(channels, self.base_detector.num_class, 
+            nn.Conv2d(256, self.base_detector.num_class, 
             kernel_size=3, padding=1)
         pi = 0.01
         _bias = -math.log((1.0-pi)/pi)
